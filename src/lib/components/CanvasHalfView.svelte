@@ -34,5 +34,8 @@
 </script>
 
 <div class="h-full w-full border border-zinc-800 bg-black">
-  <canvas class="block h-full w-full object-contain" bind:this={viewCanvas}></canvas>
+  <canvas
+    class="block h-full w-full rounded object-contain shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
+    bind:this={viewCanvas}
+  ></canvas>
 </div>

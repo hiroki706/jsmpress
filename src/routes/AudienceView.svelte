@@ -15,6 +15,7 @@
   let currentPage = 0
   let totalPages = 0
   let channel: BroadcastChannel | null = null
+  let heartbeatId: number | null = null
 
   function requestSync(): void {
     if (!channel || !sessionId) return
@@ -40,9 +41,11 @@
     }
 
     requestSync()
+    heartbeatId = window.setInterval(requestSync, 1500)
   })
 
   onDestroy(() => {
+    if (heartbeatId !== null) window.clearInterval(heartbeatId)
     channel?.close()
   })
 </script>

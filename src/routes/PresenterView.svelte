@@ -34,6 +34,22 @@
 
   let channel: BroadcastChannel | null = null;
   let renderSequence = 0;
+  let audienceConnected = false;
+  let lastAudiencePingAt = 0;
+  let audienceMonitorId: number | null = null;
+
+  let timerRunning = false;
+  let timerSeconds = 0;
+  let timerId: number | null = null;
+  let elapsedLabel = "00:00";
+
+  function formatElapsed(totalSeconds: number): string {
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+
+  $: elapsedLabel = formatElapsed(timerSeconds);
 
   function canGoPrev(): boolean {
     return pdf !== null && currentPage > 1;
@@ -74,6 +90,27 @@
 
   function openAudienceTab(): void {
     window.open(audienceUrl.toString(), "_blank", "noopener,noreferrer");
+  }
+
+  function toggleTimer(): void {
+    if (timerRunning) {
+      timerRunning = false;
+      if (timerId !== null) window.clearInterval(timerId);
+      timerId = null;
+      return;
+    }
+
+    timerRunning = true;
+    timerId = window.setInterval(() => {
+      timerSeconds += 1;
+    }, 1000);
+  }
+
+  function resetTimer(): void {
+    if (timerId !== null) window.clearInterval(timerId);
+    timerId = null;
+    timerRunning = false;
+    timerSeconds = 0;
   }
 
   function ensureSourceCanvases(): void {
@@ -155,47 +192,93 @@
       const message = event.data;
       if (!isRequestSyncMessage(message)) return;
       if (message.sessionId !== sessionId) return;
+      lastAudiencePingAt = Date.now();
+      audienceConnected = true;
       if (!pdf) return;
       void postCurrentTopFrame(renderSequence);
     };
 
+    audienceMonitorId = window.setInterval(() => {
+      if (lastAudiencePingAt === 0) {
+        audienceConnected = false;
+        return;
+      }
+      audienceConnected = Date.now() - lastAudiencePingAt < 4000;
+    }, 1000);
+
     window.addEventListener("keydown", onKeydown);
+    toggleTimer();
   });
 
   onDestroy(() => {
     window.removeEventListener("keydown", onKeydown);
+    if (timerId !== null) window.clearInterval(timerId);
+    if (audienceMonitorId !== null) window.clearInterval(audienceMonitorId);
     channel?.close();
     void pdf?.destroy();
   });
 </script>
 
-<div class="grid h-screen w-screen grid-rows-[auto_1fr_auto] gap-2 bg-zinc-950 p-2 text-zinc-100">
+<div
+  class="flex h-screen w-screen flex-col overflow-hidden bg-[#0f0f13] text-[#e8e8f0]"
+>
   <Header
-    canGoPrev={canGoPrev()}
-    canGoNext={canGoNext()}
     onOpenPdf={openPdf}
-    onGoPrev={goPrev}
-    onGoNext={goNext}
     onOpenAudience={openAudienceTab}
+    {audienceConnected}
   />
 
-  <main class="grid min-h-0 grid-cols-2 gap-2">
-    <section class="min-h-0">
-      <CanvasHalfView
-        sourceCanvas={currentPageCanvas}
-        half="bottom"
-        revision={currentRevision}
-      />
+  <main class="grid min-h-0 flex-1 grid-cols-[1fr_340px] grid-rows-2 gap-3 p-3">
+    <section
+      class="row-span-2 flex min-h-0 flex-col overflow-hidden rounded-[10px] border border-white/10 bg-[#17171f]"
+    >
+      <div
+        class="border-b border-white/10 px-3.5 py-2 text-[10px] font-semibold tracking-[0.12em] text-zinc-500 uppercase"
+      >
+        スピーカーノート
+      </div>
+      <div class="min-h-0 flex-1 p-1.5">
+        <CanvasHalfView
+          sourceCanvas={currentPageCanvas}
+          half="bottom"
+          revision={currentRevision}
+        />
+      </div>
     </section>
-    <section class="grid min-h-0 grid-rows-2 gap-2">
-      <div class="min-h-0">
+
+    <section
+      class="flex min-h-0 flex-col overflow-hidden rounded-[10px] border border-white/10 bg-[#17171f]"
+    >
+      <div
+        class="border-b border-white/10 px-3.5 py-2 text-[10px] font-semibold tracking-[0.12em] text-zinc-500 uppercase"
+      >
+        現在のスライド
+      </div>
+      <div class="relative min-h-0 flex-1 p-1.5">
         <CanvasHalfView
           sourceCanvas={currentPageCanvas}
           half="top"
           revision={currentRevision}
         />
+        {#if !pdf}
+          <div
+            class="pointer-events-none absolute inset-0 grid place-items-center text-sm text-zinc-500"
+          >
+            PDFファイルを開いてください
+          </div>
+        {/if}
       </div>
-      <div class="min-h-0">
+    </section>
+
+    <section
+      class="flex min-h-0 flex-col overflow-hidden rounded-[10px] border border-white/10 bg-[#17171f]"
+    >
+      <div
+        class="border-b border-white/10 px-3.5 py-2 text-[10px] font-semibold tracking-[0.12em] text-zinc-500 uppercase"
+      >
+        次のスライド
+      </div>
+      <div class="min-h-0 flex-1 p-1.5">
         <CanvasHalfView
           sourceCanvas={nextPageCanvas}
           half="top"
@@ -205,9 +288,24 @@
     </section>
   </main>
 
-  <Footer {currentPage} {totalPages} />
+  <Footer
+    {currentPage}
+    {totalPages}
+    {elapsedLabel}
+    {timerRunning}
+    onToggleTimer={toggleTimer}
+    onResetTimer={resetTimer}
+    onPrev={goPrev}
+    onNext={goNext}
+    canGoPrev={canGoPrev()}
+    canGoNext={canGoNext()}
+  />
 
   {#if errorMessage}
-    <p class="m-0 text-sm text-rose-300">{errorMessage}</p>
+    <p
+      class="absolute right-4 bottom-20 m-0 rounded bg-rose-400/10 px-3 py-1.5 text-sm text-rose-300"
+    >
+      {errorMessage}
+    </p>
   {/if}
 </div>

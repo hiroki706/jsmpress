@@ -589,7 +589,7 @@
           slideTexts.push(textContent.items.map(item => item.str).join(' '));
         }
 
-        buildDots();
+        buildBar();
         document.getElementById('empty-state').style.display = 'none';
         currentSlide = 1;
         await renderAll();
@@ -728,33 +728,19 @@
         totalSlides > 0 ? `${currentSlide} / ${totalSlides}` : '—';
     }
 
-    // ── Slide indicator dots ──
-    function buildDots() {
+    // ── Slide indicator bar ──
+    function buildBar() {
       const container = document.getElementById('slide-indicator');
-      container.innerHTML = '';
-      for (let i = 1; i <= totalSlides; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        dot.dataset.slide = i;
-        dot.title = `スライド ${i}`;
-        dot.style.cursor = 'pointer';
-        dot.addEventListener('click', async () => {
-          currentSlide = i;
-          await renderAll();
-          updateNav();
-        });
-        container.appendChild(dot);
-      }
+      // プログレスバー
+      container.innerHTML = `
+      <div style="width:140px; height:4px; background:var(--surface3); border-radius:2px; overflow:hidden;">
+        <div id="progress-bar" style="height:100%; background:var(--accent); border-radius:2px; transition:width 0.2s;"></div>
+      </div>`;
     }
 
     function updateDots() {
-      const dots = document.querySelectorAll('#slide-indicator .dot');
-      dots.forEach((dot, idx) => {
-        const n = idx + 1;
-        dot.classList.remove('active', 'done');
-        if (n === currentSlide) dot.classList.add('active');
-        else if (n < currentSlide) dot.classList.add('done');
-      });
+      const bar = document.getElementById('progress-bar');
+      bar.style.width = `${(currentSlide / totalSlides) * 100}%`;
     }
 
     // ── Timer ──

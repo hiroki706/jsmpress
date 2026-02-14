@@ -1,12 +1,12 @@
 <script lang="ts">
-  import Presenter from "./routes/Presenter.svelte";
-  import Viewer from "./routes/Viewer.svelte";
+  import AudienceView from './routes/AudienceView.svelte'
+  import PresenterView from './routes/PresenterView.svelte'
 
-  const mode = new URLSearchParams(document.location.search).get("mode");
+  const isAudienceRoute = window.location.pathname.endsWith('/audience')
 </script>
 
-{#if mode === "viewer"}
-  <Viewer></Viewer>
+{#if isAudienceRoute}
+  <AudienceView />
 {:else}
-  <Presenter />
+  <PresenterView />
 {/if}

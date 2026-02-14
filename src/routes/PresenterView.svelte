@@ -19,7 +19,7 @@
 
   const searchParams = new URLSearchParams(window.location.search);
   const sessionId = searchParams.get("sid") ?? crypto.randomUUID();
-  const audienceUrl = new URL("/audience", window.location.origin);
+  const audienceUrl = new URL("/#/audience", window.location.origin);
   audienceUrl.searchParams.set("sid", sessionId);
 
   let pdf: PdfDocument | null = null;

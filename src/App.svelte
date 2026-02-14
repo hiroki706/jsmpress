@@ -1,8 +1,8 @@
 <script lang="ts">
-  import AudienceView from './routes/AudienceView.svelte'
-  import PresenterView from './routes/PresenterView.svelte'
+  import AudienceView from "./routes/AudienceView.svelte";
+  import PresenterView from "./routes/PresenterView.svelte";
 
-  const isAudienceRoute = window.location.pathname.endsWith('/audience')
+  const isAudienceRoute = window.location.hash.endsWith("/audience");
 </script>
 
 {#if isAudienceRoute}

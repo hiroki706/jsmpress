@@ -688,26 +688,11 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    async function extractNotesText(pageNum) {
-      if (!pdfDoc) return '';
-      const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 1 });
-      const pageH = viewport.height;
-      const splitY = pageH / 2;
-
-      const textContent = await page.getTextContent();
-      const notesItems = textContent.items.filter(item => {
-        // y in PDF coords is from bottom; convert: screenY = pageH - item.transform[5]
-        const screenY = pageH - item.transform[5];
-        return screenY > splitY;
-      });
-
-      if (notesItems.length === 0) return '';
-      return notesItems.map(i => i.str).join('').trim();
+    async function extractNotes(pageNum) {
     }
 
     async function showNotes(pageNum) {
-      const text = await extractNotesText(pageNum);
+      const text = await extractNotes(pageNum);
       const el = document.getElementById('notes-text');
       if (!text) {
         el.textContent = 'このスライドにノートはありません。';

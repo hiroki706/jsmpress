@@ -47,11 +47,15 @@
   })
 </script>
 
-<div class="audience-screen">
+<div class="fixed inset-0 bg-black">
   {#if sessionId}
-    <canvas class="audience-canvas" bind:this={slideCanvas}></canvas>
-    <div class="audience-page">{currentPage} / {totalPages}</div>
+    <canvas class="block h-full w-full object-contain" bind:this={slideCanvas}></canvas>
+    <div
+      class="fixed right-4 bottom-4 rounded bg-black/60 px-2 py-1 text-sm text-white"
+    >
+      {currentPage} / {totalPages}
+    </div>
   {:else}
-    <p class="audience-error">共有セッションIDがありません</p>
+    <p class="mt-12 text-center text-white">共有セッションIDがありません</p>
   {/if}
 </div>

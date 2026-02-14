@@ -33,6 +33,6 @@
   $: sourceCanvas, half, revision, redrawHalf()
 </script>
 
-<div class="half-view">
-  <canvas bind:this={viewCanvas}></canvas>
+<div class="h-full w-full border border-zinc-800 bg-black">
+  <canvas class="block h-full w-full object-contain" bind:this={viewCanvas}></canvas>
 </div>

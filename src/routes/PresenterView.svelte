@@ -169,7 +169,7 @@
   });
 </script>
 
-<div class="screen">
+<div class="grid h-screen w-screen grid-rows-[auto_1fr_auto] gap-2 bg-zinc-950 p-2 text-zinc-100">
   <Header
     canGoPrev={canGoPrev()}
     canGoNext={canGoNext()}
@@ -179,23 +179,23 @@
     onOpenAudience={openAudienceTab}
   />
 
-  <main class="presenter-layout">
-    <section class="left-column">
+  <main class="grid min-h-0 grid-cols-2 gap-2">
+    <section class="min-h-0">
       <CanvasHalfView
         sourceCanvas={currentPageCanvas}
         half="bottom"
         revision={currentRevision}
       />
     </section>
-    <section class="right-column">
-      <div class="top-pane">
+    <section class="grid min-h-0 grid-rows-2 gap-2">
+      <div class="min-h-0">
         <CanvasHalfView
           sourceCanvas={currentPageCanvas}
           half="top"
           revision={currentRevision}
         />
       </div>
-      <div class="bottom-pane">
+      <div class="min-h-0">
         <CanvasHalfView
           sourceCanvas={nextPageCanvas}
           half="top"
@@ -208,6 +208,6 @@
   <Footer {currentPage} {totalPages} />
 
   {#if errorMessage}
-    <p class="error">{errorMessage}</p>
+    <p class="m-0 text-sm text-rose-300">{errorMessage}</p>
   {/if}
 </div>
